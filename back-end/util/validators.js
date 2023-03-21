@@ -4,41 +4,49 @@ module.exports.validateRegisterInput = (
   password,
   confirmPassword
 ) => {
-  const errors = {};
+  let error = '';
   if (username.trim() === '') {
-    errors.username = 'Username must not be empty';
+    error = 'Username must not be empty';
+    return checkValid(false, error);
   }
   if (email.trim() === '') {
-    errors.email = 'Email must not be empty';
+    error = 'Email must not be empty';
+    return checkValid(false, error);
   } else {
     const regEx = /^([0-9a-zA-Z]([-.\w]*[0-9a-zA-Z])*@([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,9})$/;
     if (!email.match(regEx)) {
-      errors.email = 'Email must be a valid email address';
+      error = 'Email must be a valid email address';
+      return checkValid(false, error);
     }
   }
   if (password === '') {
-    errors.password = 'Password must not empty';
+    error = 'Password must not empty';
+    return checkValid(false, error);
+  } else if (password.length < 6) {
+    error = 'Passwords must have at least 6 character';
+    return checkValid(false, error);
   } else if (password !== confirmPassword) {
-    errors.confirmPassword = 'Passwords must match';
+    error = 'Passwords must match';
+    return checkValid(false, error);
   }
 
-  return {
-    errors,
-    valid: Object.keys(errors).length < 1
-  };
+  return checkValid(true, error);
 };
 
 module.exports.validateLoginInput = (username, password) => {
-  const errors = {};
+  let error = '';
   if (username.trim() === '') {
-    errors.username = 'Username must not be empty';
+    error = 'Username must not be empty';
+    return checkValid(false, error);
   }
   if (password.trim() === '') {
-    errors.password = 'Password must not be empty';
+    error = 'Password must not be empty';
+    return checkValid(false, error);
   }
 
-  return {
-    errors,
-    valid: Object.keys(errors).length < 1
-  };
+  return checkValid(true, error);
 };
+
+function checkValid(check, error) {
+  return valid = check ? { error, valid: true } : { error, valid: false }
+}

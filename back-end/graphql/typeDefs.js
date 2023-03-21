@@ -1,4 +1,4 @@
-const { gql } = require('apollo-server');
+const { gql } = require('apollo-server-express');
 
 module.exports = gql`
   type Post {
@@ -35,9 +35,25 @@ module.exports = gql`
     confirmPassword: String!
     email: String!
   }
+  type UserProfile {
+    username: String!
+    avatar: String!
+    bio: String!
+    email: String!
+  }
   type Query {
+    hello: String!
+    getProfile: UserProfile!
     getPosts: [Post]
     getPost(postId: ID!): Post
+  }
+  input UpdateProfileInput {
+    username: String!
+    password: String!
+    confirmPassword: String!
+    email: String!
+    bio: String!
+    avatar: String!
   }
   type Mutation {
     register(registerInput: RegisterInput): User!

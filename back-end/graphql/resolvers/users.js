@@ -8,6 +8,7 @@ const {
 } = require('../../util/validators');
 const { SECRET_KEY } = require('../../config');
 const User = require('../../models/User');
+const checkAuth = require('../../util/check-auth');
 
 function generateToken(user) {
   return jwt.sign(
@@ -22,25 +23,38 @@ function generateToken(user) {
 }
 
 module.exports = {
+  Query: {
+    async getProfile(_, {}, context) {
+      const { username } = checkAuth(context);
+      const user = await User.findOne({ username });
+      const userProfile = {
+        "username": user.username,
+        "avatar": user.avatar,
+        "bio": user.bio,
+        "email": user.email
+      }
+      return userProfile
+    }
+  },
   Mutation: {
     async login(_, { username, password }) {
-      const { errors, valid } = validateLoginInput(username, password);
+      let { error, valid } = validateLoginInput(username, password);
 
       if (!valid) {
-        throw new UserInputError('Errors', { errors });
+        throw new UserInputError(error);
       }
 
       const user = await User.findOne({ username });
 
       if (!user) {
-        errors.general = 'User not found';
-        throw new UserInputError('User not found', { errors });
+        error = 'User not found';
+        throw new UserInputError(error);
       }
 
       const match = await bcrypt.compare(password, user.password);
       if (!match) {
-        errors.general = 'Wrong crendetials';
-        throw new UserInputError('Wrong crendetials', { errors });
+        error = 'Wrong crendetials';
+        throw new UserInputError(error);
       }
 
       const token = generateToken(user);
@@ -58,23 +72,20 @@ module.exports = {
       }
     ) {
       // Validate user data
-      const { valid, errors } = validateRegisterInput(
+      let { error, valid } = validateRegisterInput(
         username,
         email,
         password,
         confirmPassword
       );
       if (!valid) {
-        throw new UserInputError('Errors', { errors });
+        throw new UserInputError(error);
       }
       // TODO: Make sure user doesnt already exist
       const user = await User.findOne({ username });
       if (user) {
-        throw new UserInputError('Username is taken', {
-          errors: {
-            username: 'This username is taken'
-          }
-        });
+        error = 'Username is taken';
+        throw new UserInputError(error);
       }
       // hash password and create an auth token
       password = await bcrypt.hash(password, 12);
@@ -83,17 +94,16 @@ module.exports = {
         email,
         username,
         password,
+        avatar: 'default.png',
+        bio: '',
         createdAt: new Date().toISOString()
       });
 
       const res = await newUser.save();
 
-      const token = generateToken(res);
-
       return {
         ...res._doc,
-        id: res._id,
-        token
+        id: res._id
       };
     }
   }
