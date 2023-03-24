@@ -91,7 +91,7 @@ app.post("/update-avatar", checkAuthenticated, fileUpload({ createParentPath: tr
       }
     });
   } else {
-    return res.json({
+    return res.status(400).json({
       errors: [
         {
           message: "Missing file"

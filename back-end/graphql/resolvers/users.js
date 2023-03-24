@@ -47,21 +47,22 @@ module.exports = {
       const user = await User.findOne({ username });
 
       if (!user) {
-        error = 'User not found';
+        error = 'Username or password isn\'t correct';
         throw new UserInputError(error);
       }
 
       const match = await bcrypt.compare(password, user.password);
       if (!match) {
-        error = 'Wrong crendetials';
+        error = 'Username or password isn\'t correct';
         throw new UserInputError(error);
       }
 
       const token = generateToken(user);
 
       return {
-        ...user._doc,
-        id: user._id,
+        username: user.username,
+        bio: user.bio,
+        avatar: user.avatar,
         token
       };
     },
@@ -101,10 +102,7 @@ module.exports = {
 
       const res = await newUser.save();
 
-      return {
-        ...res._doc,
-        id: res._id
-      };
+      return "Register successful";
     }
   }
 };
